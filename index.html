@@ -1,0 +1,1015 @@
+<title>Défi 2 minutes</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Andika:wght@400;700&family=Baloo+2:wght@600;800&display=swap">
+<style>
+/* Layout: one centred column on a dotted sky; each screen (menu, jeu, résultat) swaps in place. Blue + electric yellow + capture red, wild creatures appear on grass. */
+:root {
+  --paper: #e6f2ff;
+  --dot: #cfe2fb;
+  --sheet: #ffffff;
+  --ink: #1b2244;
+  --muted: #56618a;
+  --line: #c9d8f0;
+  --pen: #2456c9;
+  --pen-soft: #e0e9ff;
+  --sun: #ffcb05;
+  --red: #e0301e;
+  --on-red: #ffffff;
+  --red-soft: #fde4e1;
+  --green: #23894a;
+  --green-soft: #e0f4e6;
+  --grass: #d9f2cf;
+  --font-display: "Baloo 2", "Trebuchet MS", system-ui, sans-serif;
+  --font-body: "Andika", "Segoe UI", system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #111a33; --dot: #1b2747; --sheet: #1b2442; --ink: #eef2ff; --muted: #a3afd4; --line: #2e3a62;
+    --pen: #8fb0ff; --pen-soft: #26335c; --sun: #ffd84a; --red: #ff6a55; --on-red: #1a0d0a; --red-soft: #3e2220;
+    --green: #6bd48f; --green-soft: #1b3527; --grass: #1f3a28; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #111a33; --dot: #1b2747; --sheet: #1b2442; --ink: #eef2ff; --muted: #a3afd4; --line: #2e3a62;
+  --pen: #8fb0ff; --pen-soft: #26335c; --sun: #ffd84a; --red: #ff6a55; --on-red: #1a0d0a; --red-soft: #3e2220;
+  --green: #6bd48f; --green-soft: #1b3527; --grass: #1f3a28; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  background: var(--paper); color: var(--ink); font-family: var(--font-body); font-size: 17px; line-height: 1.5;
+  background-image: radial-gradient(var(--dot) 1.6px, transparent 1.8px); background-size: 24px 24px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 20px 40px;
+}
+.wrap { max-width: 760px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; }
+h1, h2, h3 { font-family: var(--font-display); line-height: 1.1; margin: 0; text-wrap: balance; }
+h1 { font-size: clamp(2rem, 6vw, 2.8rem); font-weight: 800; }
+h1 { color: var(--pen); }
+h1 span { color: var(--sun); -webkit-text-stroke: 3px var(--pen); paint-order: stroke fill; }
+.lead { color: var(--muted); margin: 4px 0 0; }
+button { font: inherit; color: inherit; cursor: pointer; }
+button:focus-visible { outline: 3px solid var(--pen); outline-offset: 2px; }
+
+/* Menu */
+.modes { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); grid-auto-flow: row dense; gap: 16px; }
+/* « Calcul mental + » juste sous « Calcul mental », dans la première colonne */
+#go-calc { grid-column: 1; grid-row: 1; }
+#go-plus { grid-column: 1; grid-row: 2; }
+@media (max-width: 600px) {
+  .modes { grid-template-columns: 1fr; }
+  #go-calc, #go-plus { grid-column: auto; grid-row: auto; }
+}
+.mode {
+  text-align: left; background: var(--sheet); border: 2px solid var(--line); border-top: 8px solid var(--sun); border-radius: 14px; padding: 18px;
+  display: flex; flex-direction: column; gap: 10px; transition: border-color .15s, transform .15s;
+}
+.mode:hover { border-color: var(--pen); transform: translateY(-2px); }
+.mode h2 { font-size: 1.5rem; }
+.mode .ex { font-size: 1.15rem; color: var(--pen); font-variant-numeric: tabular-nums; }
+.mode p { margin: 0; color: var(--muted); }
+.mode .best { font-size: .9rem; color: var(--muted); border-top: 1px dashed var(--line); padding-top: 8px; }
+.mode .go { align-self: flex-start; background: var(--red); color: var(--on-red); border-radius: 999px; padding: 6px 16px; font-weight: 700; }
+.belts { background: var(--sheet); border: 1px solid var(--line); border-radius: 14px; padding: 16px; display: flex; flex-direction: column; gap: 10px; }
+.belts h3 { font-size: 1.1rem; }
+.belt-row { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; }
+.belt-chip { display: flex; align-items: center; gap: 8px; font-size: .9rem; }
+.belt-chip small { color: var(--muted); font-variant-numeric: tabular-nums; }
+.sw { width: 34px; height: 12px; border-radius: 3px; border: 1px solid var(--muted); flex: none; }
+
+/* Game header */
+.bar { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+.timer { position: relative; width: 74px; height: 74px; flex: none; }
+.timer svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+.timer circle { fill: none; stroke-width: 8; }
+.timer .track { stroke: var(--line); }
+.timer .prog { stroke: var(--pen); stroke-linecap: round; transition: stroke .3s; }
+.timer.low .prog { stroke: var(--red); }
+.timer b { position: absolute; inset: 0; display: grid; place-items: center; font-family: var(--font-display); font-size: 1.25rem; font-variant-numeric: tabular-nums; }
+.bar .info { flex: 1; min-width: 0; }
+.bar .info h2 { font-size: 1.3rem; }
+.bar .info div { color: var(--muted); font-variant-numeric: tabular-nums; }
+.ghost { background: transparent; border: 2px solid var(--line); border-radius: 999px; padding: 6px 14px; color: var(--muted); }
+.ghost:hover { border-color: var(--red); color: var(--red); }
+
+/* Calcul mental */
+.card { background: var(--sheet); border: 2px solid var(--line); border-radius: 18px; padding: 22px 18px; display: flex; flex-direction: column; align-items: center; gap: 18px; transition: background .15s, border-color .15s; }
+.card.ok { border-color: var(--green); background: var(--green-soft); }
+.card.ko { border-color: var(--red); background: var(--red-soft); }
+.calc { font-family: var(--font-display); font-weight: 800; font-size: clamp(2.6rem, 11vw, 4.2rem); font-variant-numeric: tabular-nums; display: flex; align-items: baseline; gap: .3em; flex-wrap: wrap; justify-content: center; }
+.answer { min-width: 2.2em; text-align: center; color: var(--pen); border-bottom: 4px solid var(--pen); padding: 0 .1em; }
+.answer:empty::after { content: "?"; color: var(--line); }
+.fix { color: var(--red); font-size: .5em; }
+.pad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; width: 100%; max-width: 340px; }
+.pad button { font-family: var(--font-display); font-weight: 800; font-size: 1.8rem; padding: 10px 0; border-radius: 14px; border: 2px solid var(--line); background: var(--paper); font-variant-numeric: tabular-nums; }
+.pad button:active { transform: scale(.96); }
+.pad .del { color: var(--muted); font-size: 1.2rem; }
+.pad .ok-btn { background: var(--pen); color: var(--sheet); border-color: var(--pen); font-size: 1.3rem; }
+.hint { color: var(--muted); font-size: .85rem; text-align: center; margin: 0; }
+
+/* Numération */
+.q { font-family: var(--font-display); font-size: 1.35rem; text-align: center; }
+.scene { display: flex; flex-wrap: wrap; gap: 14px; align-items: flex-end; justify-content: center; width: 100%; }
+.groups { display: flex; flex-wrap: wrap; gap: 8px; align-items: flex-end; justify-content: center; }
+.singles { display: grid; grid-template-columns: repeat(5, auto); gap: 5px; padding: 8px; border: 2px dashed var(--line); border-radius: 12px; }
+.scene svg { display: block; }
+.groups, .singles { zoom: 1.45; }
+.labels { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
+.lab { position: relative; background: var(--paper); border: 2px solid var(--line); border-radius: 10px; padding: 8px 14px; font-size: 1.15rem; font-weight: 700; font-variant-numeric: tabular-nums; min-height: 48px; }
+.lab.cross { border-color: var(--red); color: var(--muted); }
+.lab.cross::after { content: ""; position: absolute; left: 6px; right: 6px; top: 50%; height: 3px; background: var(--red); transform: rotate(-8deg); border-radius: 2px; }
+.lab.good { border-color: var(--green); background: var(--green-soft); }
+.lab.bad { border-color: var(--red); background: var(--red-soft); }
+.big-btn { background: var(--red); color: var(--on-red); border: none; border-radius: 999px; padding: 12px 28px; font-family: var(--font-display); font-weight: 800; font-size: 1.25rem; }
+.big-btn.alt { background: var(--sheet); color: var(--pen); border: 2px solid var(--pen); }
+.wild { width: 100%; display: flex; align-items: center; justify-content: center; gap: 14px; background: var(--grass); border-radius: 14px; padding: 8px 14px; min-height: 96px; }
+.wild .cr { flex: none; transition: transform .45s, opacity .45s; }
+.wild.caught .cr { transform: scale(.15) translateY(40px) rotate(180deg); opacity: 0; }
+.wild.flee .cr { transform: translateX(90px); opacity: 0; }
+.wild p { margin: 0; font-weight: 700; }
+.wild p small { font-weight: 400; color: var(--muted); }
+.parade { display: flex; gap: 4px; align-items: flex-end; }
+.catch-list { display: flex; flex-wrap: wrap; gap: 4px; justify-content: center; }
+.dex { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 8px; }
+.review h3 small, .review h4 small { font-family: var(--font-body); font-weight: 400; color: var(--muted); font-size: .85rem; }
+.review h4 { font-family: var(--font-display); font-size: 1.05rem; margin: 10px 0 0; }
+.tiles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.tile { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 10px 6px; border-radius: 14px; border: 2px solid var(--line); background: var(--paper); text-align: center; transition: border-color .15s, transform .15s; }
+.tile:hover { transform: translateY(-2px); }
+.tile strong { font-family: var(--font-display); font-size: 1rem; line-height: 1.15; }
+.tile small { color: var(--muted); font-variant-numeric: tabular-nums; }
+.tile.on { border-color: var(--pen); background: var(--grass); box-shadow: 0 4px 0 var(--pen); }
+.tile .unknown svg { filter: brightness(0); opacity: .25; }
+.only { display: flex; align-items: center; gap: 8px; font-weight: 700; cursor: pointer; padding: 4px 0; }
+.only input { width: 22px; height: 22px; accent-color: var(--pen); }
+.more { display: block; margin: 12px auto 0; font-size: 1rem; }
+.music-btn {
+  position: fixed; z-index: 20;
+  right: calc(12px + env(safe-area-inset-right, 0px)); bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+  background: var(--sheet); color: var(--pen); border: 2px solid var(--pen); border-radius: 999px;
+  padding: 6px 14px; font-weight: 700; font-size: .85rem; box-shadow: 0 2px 8px rgba(0,0,0,.15);
+}
+.music-btn[aria-pressed="false"] { color: var(--muted); border-color: var(--line); }
+.title-row { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+.title-row .mini { flex: none; font-size: .8rem; padding: 4px 10px; margin-top: 6px; }
+.mini-row { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
+.admin { display: flex; flex-direction: column; gap: 16px; }
+.fields { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; }
+.field { display: flex; flex-direction: column; gap: 4px; font-weight: 700; }
+.field input { font: inherit; font-size: 1.2rem; padding: 8px 12px; border-radius: 10px; border: 2px solid var(--line); background: var(--paper); color: var(--ink); width: 100%; max-width: 160px; font-variant-numeric: tabular-nums; }
+.field input:focus { outline: 3px solid var(--pen); outline-offset: 1px; }
+.field small { font-weight: 400; color: var(--muted); }
+.check { display: flex; align-items: center; gap: 8px; font-weight: 700; align-self: end; padding-bottom: 6px; }
+.check input, .tchip input { width: 20px; height: 20px; accent-color: var(--pen); }
+.lbl { margin: 0; font-weight: 700; }
+.tables { display: flex; flex-wrap: wrap; gap: 8px; }
+.tchip { display: flex; align-items: center; gap: 6px; padding: 6px 12px; border: 2px solid var(--line); border-radius: 999px; background: var(--paper); font-weight: 700; cursor: pointer; font-variant-numeric: tabular-nums; }
+.tchip:has(input:checked) { border-color: var(--pen); background: var(--pen-soft); }
+.saved { margin: 0; color: var(--green); font-weight: 700; }
+.title-row + .top { margin-top: -12px; align-items: flex-end; }
+.title-row + .top .lead { margin: 0; flex: 1; min-width: 220px; }
+.who { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.who span { font-size: 1.1rem; margin-right: auto; }
+.pseudo { background: var(--sheet); border: 2px solid var(--line); border-top: 8px solid var(--sun); border-radius: 14px; padding: 16px; display: flex; flex-direction: column; gap: 8px; }
+.pseudo label { font-family: var(--font-display); font-weight: 800; font-size: 1.2rem; }
+.pseudo .row { display: flex; gap: 10px; flex-wrap: wrap; }
+.pseudo input { flex: 1; min-width: 0; font: inherit; font-size: 1.2rem; padding: 10px 14px; border-radius: 12px; border: 2px solid var(--line); background: var(--paper); color: var(--ink); }
+.pseudo input:focus { outline: 3px solid var(--pen); outline-offset: 1px; }
+.err { margin: 0; color: var(--red); font-weight: 700; }
+.players { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 10px; }
+.player strong { overflow-wrap: anywhere; font-size: 1.5rem; }
+.who-cell { font-weight: 700; }
+.cbox { display: flex; flex-direction: column; align-items: center; font-size: .75rem; }
+.cbox b { color: var(--red); }
+.dex > div { display: flex; flex-direction: column; align-items: center; gap: 2px; background: var(--grass); border-radius: 12px; padding: 8px; font-size: .9rem; text-align: center; }
+.dex small { color: var(--muted); }
+.dex .unknown svg { filter: brightness(0); opacity: .25; }
+
+/* Résultat */
+.result { background: var(--sheet); border: 2px dashed var(--muted); border-radius: 18px; padding: 22px; display: flex; flex-direction: column; align-items: center; gap: 12px; text-align: center; }
+.score-ring { width: 120px; height: 120px; border: 4px solid var(--ink); border-radius: 50%; display: grid; place-items: center; font-family: var(--font-display); font-weight: 800; font-size: 2.6rem; color: var(--pen); font-variant-numeric: tabular-nums; }
+.score-ring small { display: block; font-size: .9rem; color: var(--muted); margin-top: -12px; }
+.belt-big { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.belt-big .sw { width: 140px; height: 22px; border-radius: 5px; }
+.actions { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
+.review { background: var(--sheet); border: 1px solid var(--line); border-radius: 14px; padding: 16px; display: flex; flex-direction: column; gap: 8px; }
+.review h3 { font-size: 1.1rem; }
+.review ul { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 6px 14px; font-variant-numeric: tabular-nums; }
+.review li.ko { color: var(--red); }
+.review li.ok { color: var(--green); }
+.review li s { color: var(--muted); }
+.review p { margin: 0; }
+.top { display: flex; justify-content: space-between; align-items: flex-start; gap: 14px; flex-wrap: wrap; }
+.top .big-btn { font-size: 1.05rem; padding: 8px 18px; }
+.rank { margin: 0; font-weight: 700; color: var(--pen); }
+.rank-none { margin: 0; color: var(--muted); }
+.tbl { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+th { text-align: left; font-size: .8rem; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); padding: 6px 8px; border-bottom: 2px solid var(--line); }
+td { padding: 8px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+td small { color: var(--muted); }
+td.pl { font-family: var(--font-display); font-weight: 800; color: var(--pen); }
+tbody tr:first-child td { background: var(--pen-soft); }
+.aw { display: inline-flex; align-items: center; gap: 6px; }
+.aw .sw { width: 26px; height: 10px; }
+.none { color: var(--muted); }
+.empty { color: var(--muted); margin: 0; }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+
+<div class="wrap" id="app"></div>
+<audio id="bgm" src="musique.mp3" loop preload="auto"></audio>
+<audio id="bgm-jeu" src="musique-jeu-2.mp3" loop preload="auto"></audio>
+<button class="music-btn" id="music-btn" aria-pressed="true">♪ Musique : oui</button>
+
+<script>
+const DUREE = 120;
+const BELTS = [
+  { min: 0,  name: "Blanche", color: "#ffffff" },
+  { min: 5,  name: "Blanche / Jaune", color: "linear-gradient(90deg,#ffffff 50%,#f4d03f 50%)" },
+  { min: 10, name: "Jaune",   color: "#f4d03f" },
+  { min: 15, name: "Orange",  color: "#ef8a2c" },
+  { min: 20, name: "Verte",   color: "#3a9b4f" },
+  { min: 25, name: "Bleue",   color: "#2f6fcf" },
+  { min: 30, name: "Rouge",   color: "#d23b34" },
+  { min: 35, name: "Noire",   color: "#111111" },
+];
+const RANGES = ["jusqu'à 4", "5 à 9", "10 à 14", "15 à 19", "20 à 24", "25 à 29", "30 à 34", "35 et +"];
+const belt = n => BELTS.filter(b => n >= b.min).pop();
+const app = document.getElementById("app");
+const rnd = (a, b) => a + Math.floor(Math.random() * (b - a + 1));
+const shuffle = a => { for (let i = a.length - 1; i > 0; i--) { const j = rnd(0, i); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+
+const MEDALS = [
+  { min: 13, name: "Médaille d'or",    short: "Or",     color: "#e2b33c", range: "13 et +" },
+  { min: 9,  name: "Médaille d'argent", short: "Argent", color: "#b9c0c9", range: "9 à 12" },
+  { min: 6,  name: "Médaille de bronze", short: "Bronze", color: "#c47e45", range: "6 à 8" },
+];
+const medal = (n, table = MEDALS) => table.find(m => n >= m.min) || null;
+const medalSVG = (m, size = 64) => `<svg width="${size}" height="${size * 1.3}" viewBox="0 0 50 65" aria-hidden="true"><path d="M14 0 L22 22 L28 22 L20 0 Z" fill="#c8332f"/><path d="M36 0 L28 22 L22 22 L30 0 Z" fill="#2f6fcf"/><circle cx="25" cy="42" r="20" fill="${m.color}" stroke="rgba(0,0,0,.25)" stroke-width="2"/><circle cx="25" cy="42" r="14" fill="none" stroke="rgba(255,255,255,.55)" stroke-width="2"/><path d="M25 32 l3 6.5 7 .8 -5.2 4.8 1.4 7 -6.2-3.5 -6.2 3.5 1.4-7 -5.2-4.8 7-.8z" fill="rgba(255,255,255,.75)"/></svg>`;
+
+/* ---------- Créatures (dessins originaux) : 500 espèces × 3 stades = 1500 ---------- */
+const TYPES = [
+  { root: "Flam",  hue: 16,  sat: 85, top: "flame" },
+  { root: "Goutt", hue: 205, sat: 75, top: "drop" },
+  { root: "Feuil", hue: 115, sat: 55, top: "leaf" },
+  { root: "Zap",   hue: 48,  sat: 95, top: "bolt" },
+  { root: "Roc",   hue: 28,  sat: 22, top: "rock" },
+  { root: "Plum",  hue: 330, sat: 65, top: "wing" },
+  { root: "Glac",  hue: 186, sat: 60, top: "ice" },
+  { root: "Ombr",  hue: 262, sat: 45, top: "ghost" },
+  { root: "Champ", hue: 4,   sat: 70, top: "mush" },
+  { root: "Poil",  hue: 36,  sat: 50, top: "ears" },
+  { root: "Sabl",  hue: 42,  sat: 55, top: "sand" },
+  { root: "Dard",  hue: 80,  sat: 60, top: "bug" },
+  { root: "Drak",  hue: 150, sat: 50, top: "dragon" },
+  { root: "Luci",  hue: 310, sat: 70, top: "fairy" },
+  { root: "Ferr",  hue: 220, sat: 14, top: "metal" },
+  { root: "Toxi",  hue: 285, sat: 60, top: "poison" },
+  { root: "Lun",   hue: 235, sat: 40, top: "moon" },
+  { root: "Sol",   hue: 38,  sat: 100, top: "sun" },
+  { root: "Nuag",  hue: 200, sat: 28, top: "cloud" },
+  { root: "Cor",   hue: 350, sat: 75, top: "coral" },
+];
+// Terminaisons des noms : [base, évolution 1, évolution 2] — 25 par famille
+const ENDS = [
+  ["ou", "ouko", "oukaïd"], ["ino", "inor", "inorus"], ["ic", "icor", "icorax"], ["ette", "ettor", "ettorion"],
+  ["on", "onix", "onixar"], ["y", "yrus", "yrastor"], ["ix", "ixel", "ixeldor"], ["ard", "ardo", "ardolos"],
+  ["elle", "ellia", "elliarka"], ["um", "umba", "umbaro"],
+  ["a", "akor", "akoros"], ["iko", "ikora", "ikoraxe"], ["us", "usto", "ustoron"], ["ane", "anex", "anexus"],
+  ["ot", "otron", "otronix"], ["eau", "eaurus", "eaurex"], ["ia", "iaka", "iakadon"], ["o", "oduk", "odukor"],
+  ["ine", "inard", "inardus"], ["ar", "arok", "arokan"], ["il", "ilion", "ilionix"], ["ex", "exar", "exardon"],
+  ["oche", "ochard", "ochardo"], ["idou", "idouk", "idoukar"], ["ème", "émion", "émionis"],
+];
+const STAGE = ["Créature de base", "Évolution 1", "Évolution 2"];
+const STAGE_PLURAL = ["Créatures de base", "Évolutions 1", "Évolutions 2"];
+// Ordre des espèces : les 100 premières restent celles d'avant, pour garder les collections.
+const SPECIES = [];
+for (let t = 0; t < 10; t++) for (let v = 0; v < 10; v++) SPECIES.push([t, v]);
+for (let t = 0; t < 10; t++) for (let v = 10; v < 25; v++) SPECIES.push([t, v]);
+for (let t = 10; t < 20; t++) for (let v = 0; v < 25; v++) SPECIES.push([t, v]);
+const NB_ESPECES = SPECIES.length;
+// id = espèce × 3 + stade
+function CREA(id) {
+  const sp = Math.floor(id / 3), st = id % 3, [t, v] = SPECIES[sp];
+  return { id, sp, st, t, v, name: TYPES[t].root + ENDS[v][st], baseName: TYPES[t].root + ENDS[v][0] };
+}
+function creatureSVG(id, size = 80) {
+  const { st, t, v, name } = CREA(id), T = TYPES[t];
+  const h = Math.round((T.hue + (v < 10 ? (v - 4.5) * 7 : (v - 17) * 5 + (v % 2 ? 9 : -9)) + 360) % 360), s = T.sat, L = 60 - st * 7;
+  const c = `hsl(${h} ${s}% ${L}%)`, dark = `hsl(${h} ${s}% ${L - 24}%)`, belly = `hsl(${h} ${Math.min(s + 10, 95)}% 88%)`, acc = `hsl(${(h + 160) % 360} 75% 58%)`;
+  const o = `stroke="${dark}" stroke-width="2.2"`;
+  const tops = {
+    flame: `<path d="M50 4 C64 20 72 26 64 40 L36 40 C28 26 40 22 50 4Z" fill="hsl(${h + 12} 100% 55%)"/><path d="M50 18 C57 27 59 32 55 40 L45 40 C41 32 44 26 50 18Z" fill="hsl(${h + 34} 100% 72%)"/>`,
+    drop: `<path d="M50 4 C58 18 64 26 60 34 C56 41 44 41 40 34 C36 26 42 18 50 4Z" fill="${belly}" ${o}/>`,
+    leaf: `<path d="M50 38 C40 20 44 8 62 4 C66 18 62 30 50 38Z" fill="hsl(${h} 55% 36%)"/><path d="M50 38 C38 26 30 20 26 12 C40 12 48 22 50 38Z" fill="hsl(${h + 10} 50% 46%)"/>`,
+    bolt: `<path d="M28 40 L16 6 L40 30Z" fill="${c}" ${o}/><path d="M72 40 L84 6 L60 30Z" fill="${c}" ${o}/><path d="M16 6 L21 19 L26 15Z" fill="${dark}"/><path d="M84 6 L79 19 L74 15Z" fill="${dark}"/>`,
+    rock: `<path d="M26 40 L34 18 L46 26 L58 8 L74 40Z" fill="hsl(${h} 8% 58%)" stroke="hsl(${h} 8% 35%)" stroke-width="2"/>`,
+    wing: `<path d="M22 58 C0 44 2 24 18 26 C22 38 26 46 30 52Z" fill="#fff" ${o}/><path d="M78 58 C100 44 98 24 82 26 C78 38 74 46 70 52Z" fill="#fff" ${o}/>`,
+    ice: `<path d="M36 38 L42 8 L50 30 L57 2 L64 38Z" fill="hsl(${h} 80% 94%)" ${o}/>`,
+    ghost: `<path d="M32 40 C24 20 38 8 44 24Z" fill="${c}" ${o}/><path d="M68 40 C76 20 62 8 56 24Z" fill="${c}" ${o}/>`,
+    mush: `<path d="M18 42 C18 8 82 8 82 42Z" fill="${c}" ${o}/><circle cx="36" cy="26" r="5" fill="#fff"/><circle cx="60" cy="20" r="6" fill="#fff"/><circle cx="71" cy="33" r="3" fill="#fff"/>`,
+    ears: `<path d="M30 42 L22 10 L46 32Z" fill="${c}" ${o}/><path d="M70 42 L78 10 L54 32Z" fill="${c}" ${o}/><path d="M29 33 L25 17 L38 30Z" fill="#ff9fb0"/><path d="M71 33 L75 17 L62 30Z" fill="#ff9fb0"/>`,
+    sand: `<path d="M24 42 C30 30 40 34 46 26 C52 18 64 24 76 42Z" fill="hsl(${h} 50% 72%)" ${o}/><circle cx="40" cy="34" r="2" fill="${dark}"/><circle cx="58" cy="28" r="2" fill="${dark}"/>`,
+    bug: `<path d="M42 38 Q36 18 26 10 M58 38 Q64 18 74 10" stroke="${dark}" stroke-width="3" fill="none" stroke-linecap="round"/><circle cx="26" cy="10" r="5" fill="${acc}" ${o}/><circle cx="74" cy="10" r="5" fill="${acc}" ${o}/>`,
+    dragon: `<path d="M32 40 L24 12 L42 32Z" fill="hsl(${h} 30% 85%)" ${o}/><path d="M68 40 L76 12 L58 32Z" fill="hsl(${h} 30% 85%)" ${o}/><path d="M42 36 L46 22 L50 32 L54 20 L58 36Z" fill="${acc}" ${o}/>`,
+    fairy: `<ellipse cx="30" cy="40" rx="14" ry="8" fill="hsl(${h} 90% 90%)" ${o} transform="rotate(-35 30 40)"/><ellipse cx="70" cy="40" rx="14" ry="8" fill="hsl(${h} 90% 90%)" ${o} transform="rotate(35 70 40)"/><path d="M50 18 l2.5 5.5 6 .6 -4.5 4 1.3 6 -5.3-3 -5.3 3 1.3-6 -4.5-4 6-.6z" fill="#ffd84a" stroke="#c99a00" stroke-width="1"/>`,
+    metal: `<path d="M26 42 Q26 18 50 16 Q74 18 74 42Z" fill="hsl(${h} 12% 72%)" ${o}/><circle cx="50" cy="26" r="5" fill="hsl(${h} 12% 50%)" ${o}/><path d="M47 26 h6 M50 23 v6" stroke="${dark}" stroke-width="1.5"/>`,
+    poison: `<circle cx="38" cy="30" r="8" fill="${acc}" opacity=".8" ${o}/><circle cx="56" cy="20" r="10" fill="${acc}" opacity=".8" ${o}/><circle cx="66" cy="34" r="6" fill="${acc}" opacity=".8" ${o}/>`,
+    moon: `<path d="M58 6 A18 18 0 1 0 64 38 A14 14 0 1 1 58 6Z" fill="#f4e9a8" stroke="#b8a64a" stroke-width="2"/>`,
+    sun: `<g stroke="hsl(${h + 8} 100% 50%)" stroke-width="4" stroke-linecap="round"><path d="M50 4 V14 M28 12 L34 20 M72 12 L66 20 M18 30 L28 32 M82 30 L72 32"/></g><circle cx="50" cy="34" r="12" fill="hsl(${h + 14} 100% 62%)" ${o}/>`,
+    cloud: `<path d="M24 40 C14 40 14 26 26 26 C26 14 44 12 48 22 C54 12 72 14 72 26 C86 24 88 40 76 40Z" fill="#fff" ${o}/>`,
+    coral: `<path d="M50 40 V22 M50 30 L40 18 M40 18 V10 M40 18 L32 14 M50 26 L60 14 M60 14 V8 M60 14 L68 12" stroke="hsl(${h} 80% 62%)" stroke-width="5" stroke-linecap="round" fill="none"/>`,
+  };
+  const shape = v % 4;
+  const body = [
+    `<ellipse cx="50" cy="63" rx="32" ry="29" fill="${c}" ${o}/>`,
+    `<ellipse cx="50" cy="62" rx="26" ry="32" fill="${c}" ${o}/>`,
+    `<path d="M50 32 C76 32 84 70 78 83 C72 95 28 95 22 83 C16 70 24 32 50 32Z" fill="${c}" ${o}/>`,
+    `<rect x="18" y="35" width="64" height="57" rx="24" fill="${c}" ${o}/>`,
+  ][shape];
+  const eyeStyle = Math.floor(v / 4) % 3;
+  const eyes = [
+    `<ellipse cx="39" cy="56" rx="5" ry="7" fill="#1d1d2b"/><ellipse cx="61" cy="56" rx="5" ry="7" fill="#1d1d2b"/><circle cx="41" cy="53" r="2.2" fill="#fff"/><circle cx="63" cy="53" r="2.2" fill="#fff"/>`,
+    `<path d="M33 57 Q39 50 45 57 M55 57 Q61 50 67 57" stroke="#1d1d2b" stroke-width="3" fill="none" stroke-linecap="round"/>`,
+    `<circle cx="38" cy="56" r="8" fill="#fff" stroke="#1d1d2b" stroke-width="2"/><circle cx="62" cy="56" r="8" fill="#fff" stroke="#1d1d2b" stroke-width="2"/><circle cx="39" cy="57" r="4.5" fill="#1d1d2b"/><circle cx="61" cy="57" r="4.5" fill="#1d1d2b"/><circle cx="40.5" cy="55" r="1.6" fill="#fff"/><circle cx="62.5" cy="55" r="1.6" fill="#fff"/>`,
+  ][eyeStyle];
+  const extra = [
+    "",
+    `<circle cx="27" cy="74" r="3.5" fill="${dark}" opacity=".45"/><circle cx="73" cy="72" r="3" fill="${dark}" opacity=".45"/><circle cx="70" cy="81" r="2.5" fill="${dark}" opacity=".45"/>`,
+    `<path d="M44 40 L50 47 L56 40" stroke="${dark}" stroke-width="3" fill="none" stroke-linecap="round"/>`,
+  ][v % 3];
+  const k = [1, 1.2, 1.4][st];
+  // Variantes 10 à 24 : un détail en plus pour les distinguer des 10 premières
+  const deco = v < 10 ? "" : v % 2
+    ? `<path d="M36 44 L40 38 L44 44 M56 44 L60 38 L64 44" stroke="${acc}" stroke-width="3" fill="none" stroke-linecap="round"/>`
+    : `<circle cx="33" cy="80" r="3" fill="${acc}"/><circle cx="67" cy="80" r="3" fill="${acc}"/><circle cx="50" cy="88" r="2.5" fill="${acc}"/>`;
+  const top = `<g transform="translate(50 40) scale(${k}) translate(-50 -40)">${tops[T.top]}</g>`;
+  const tail = st >= 1 ? `<path d="M76 74 C94 74 96 56 88 48 C92 62 84 68 74 66Z" fill="${dark}"/>` : "";
+  const aura = st === 2 ? `<circle cx="50" cy="56" r="56" fill="${acc}" opacity=".18"/><circle cx="50" cy="56" r="56" fill="none" stroke="${acc}" stroke-width="2" stroke-dasharray="4 6" opacity=".7"/>` : "";
+  const arms = st >= 1 ? `<ellipse cx="20" cy="70" rx="6" ry="9" fill="${c}" ${o} transform="rotate(25 20 70)"/><ellipse cx="80" cy="70" rx="6" ry="9" fill="${c}" ${o} transform="rotate(-25 80 70)"/>` : "";
+  const brows = st >= 1 ? `<path d="M32 ${eyeStyle === 2 ? 44 : 46} L45 ${eyeStyle === 2 ? 47 : 49} M68 ${eyeStyle === 2 ? 44 : 46} L55 ${eyeStyle === 2 ? 47 : 49}" stroke="#1d1d2b" stroke-width="2.5" stroke-linecap="round"/>` : "";
+  const gem = st === 2 ? `<path d="M50 36 L55 42 L50 48 L45 42Z" fill="${acc}" stroke="#fff" stroke-width="1.5"/>` : "";
+  const mouth = st === 2
+    ? `<path d="M43 66 Q50 74 57 66Z" fill="#1d1d2b"/><path d="M45 66 L47 70 L49 66Z" fill="#fff"/><path d="M55 66 L53 70 L51 66Z" fill="#fff"/>`
+    : `<path d="M45 66 Q50 71 55 66" stroke="#1d1d2b" stroke-width="2.5" fill="none" stroke-linecap="round"/>`;
+  const scale = [0.86, 1, 1.08][st];
+  return `<svg class="cr" width="${size}" height="${size}" viewBox="-10 -10 120 120" role="img" aria-label="${name}">
+    ${aura}<g transform="translate(50 56) scale(${scale}) translate(-50 -56)">
+    ${top}${tail}
+    <ellipse cx="36" cy="92" rx="9" ry="5" fill="${c}" ${o}/><ellipse cx="64" cy="92" rx="9" ry="5" fill="${c}" ${o}/>
+    ${body}${arms}
+    <ellipse cx="50" cy="75" rx="17" ry="12" fill="${belly}"/>
+    ${extra}${deco}${gem}${eyes}${brows}
+    <circle cx="28" cy="66" r="4.5" fill="#ff6f86" opacity=".5"/><circle cx="72" cy="66" r="4.5" fill="#ff6f86" opacity=".5"/>
+    ${mouth}</g>
+  </svg>`;
+}
+
+/* ---------- Joueurs : chaque pseudo a sa collection ---------- */
+const PLAYERS_KEY = "defi2min-joueurs";
+const esc = s => String(s).replace(/[&<>"']/g, ch => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[ch]));
+function loadPlayers() { try { const p = JSON.parse(localStorage.getItem(PLAYERS_KEY)) || {}; return { list: p.list || [], current: p.current || null }; } catch (e) { return { list: [], current: null }; } }
+function savePlayers(p) { try { localStorage.setItem(PLAYERS_KEY, JSON.stringify(p)); } catch (e) {} }
+let player = loadPlayers().current;
+const dexKey = name => "defi2min-collection:" + name;
+function dexOf(name) { try { return JSON.parse(localStorage.getItem(dexKey(name))) || {}; } catch (e) { return {}; } }
+// Collection d'avant les pseudos : elle revient au premier joueur créé.
+function legacyDex() {
+  try {
+    const d = JSON.parse(localStorage.getItem("defi2min-collection"));
+    if (d) return d;
+    const old = JSON.parse(localStorage.getItem("defi2min-dex")) || {}, m = {};
+    Object.keys(old).forEach(i => { if (old[i]) m[Number(i) * 30] = old[i]; });
+    return m;
+  } catch (e) { return {}; }
+}
+function choosePlayer(name) {
+  const p = loadPlayers(), same = p.list.find(n => n.toLowerCase() === name.toLowerCase());
+  if (same) name = same;
+  else {
+    if (!p.list.length) { try { localStorage.setItem(dexKey(name), JSON.stringify(legacyDex())); } catch (e) {} }
+    p.list.push(name);
+  }
+  p.current = name; savePlayers(p); player = name;
+}
+function loadDex() { return player ? dexOf(player) : {}; }
+function addCatch(id) {
+  const d = loadDex(), isNew = !d[id];
+  d[id] = (d[id] || 0) + 1;
+  try { localStorage.setItem(dexKey(player), JSON.stringify(d)); } catch (e) {}
+  return isNew;
+}
+const stagesDone = (d, sp) => d[sp * 3] ? (d[sp * 3 + 1] ? (d[sp * 3 + 2] ? 3 : 2) : 1) : 0;
+// Choisit une espèce ; si elle a déjà été attrapée, on propose son évolution suivante.
+function pickCreature(prevSp) {
+  const d = loadDex();
+  const enCours = [...Array(NB_ESPECES).keys()].filter(sp => sp !== prevSp && [1, 2].includes(stagesDone(d, sp)));
+  let sp;
+  if (enCours.length && Math.random() < 0.35) sp = enCours[rnd(0, enCours.length - 1)];
+  else { let n = 0; do { sp = rnd(0, NB_ESPECES - 1); n++; } while ((sp === prevSp || stagesDone(d, sp) === 3) && n < 30); }
+  return sp * 3 + Math.min(2, stagesDone(d, sp));
+}
+const wildHTML = id => {
+  const k = CREA(id);
+  return `${creatureSVG(id, 96)}<p>${k.st ? `Évolution de ${k.baseName} : un ${k.name} sauvage apparaît !` : `Un ${k.name} sauvage apparaît !`}<br><small>${STAGE[k.st]} · Réponds juste pour l'attraper.</small></p>`;
+};
+function wildEnd(ok, id) {
+  const w = document.getElementById("wild"); if (!w) return;
+  const n = CREA(id).name;
+  w.classList.add(ok ? "caught" : "flee");
+  w.querySelector("p").innerHTML = ok ? `Bravo ! ${n} est attrapé !` : `Oh non… ${n} s'est enfui !`;
+}
+const caughtHTML = hist => {
+  const c = hist.filter(h => h.ok); if (!c.length) return "";
+  const nouveaux = c.filter(h => h.isNew).length;
+  return `<section class="review"><h3>Créatures attrapées : ${c.length}${nouveaux ? ` · ${nouveaux} nouvelle${nouveaux > 1 ? "s" : ""}` : ""}</h3><div class="catch-list">${c.map(h => `<span class="cbox">${creatureSVG(h.cr, 52)}${h.isNew ? "<b>Nouveau</b>" : ""}</span>`).join("")}</div></section>`;
+};
+let dexStage = 0, dexOnlyCaught = true;
+const stageIds = st => [...Array(NB_ESPECES).keys()].map(sp => sp * 3 + st);
+function dexHTML(d) {
+  const total = Object.keys(d).filter(k => d[k] > 0).length;
+  const tile = st => {
+    const ids = stageIds(st), got = ids.filter(id => d[id]);
+    const face = got.length ? got[got.length - 1] : ids[0];
+    return `<button class="tile${st === dexStage ? " on" : ""}" data-st="${st}" aria-pressed="${st === dexStage}">
+      <span class="${got.length ? "" : "unknown"}">${creatureSVG(face, 56)}</span>
+      <strong>${STAGE_PLURAL[st]}</strong><small>${got.length} / ${NB_ESPECES}</small></button>`;
+  };
+  return `<section class="review"><h3>Collection de ${esc(player)} <small>${total} / ${NB_ESPECES * 3}</small></h3>
+    <div class="tiles">${tile(0)}${tile(1)}${tile(2)}</div>
+    <label class="only"><input type="checkbox" id="only-caught"${dexOnlyCaught ? " checked" : ""}> Afficher seulement les créatures capturées</label>
+    <div id="dex-grid"></div></section>`;
+}
+function bindDex(d) {
+  const PAGE = 100;
+  let shown = PAGE;
+  const grid = () => {
+    const ids = stageIds(dexStage).filter(id => !dexOnlyCaught || d[id]), part = ids.slice(0, shown);
+    const box = document.getElementById("dex-grid");
+    box.innerHTML = ids.length ? `<div class="dex">${part.map(id => {
+      const n = d[id] || 0;
+      return `<div class="${n ? "" : "unknown"}">${creatureSVG(id, 60)}<strong>${n ? CREA(id).name : "???"}</strong><small>${n ? `attrapé ${n} fois` : "pas encore vu"}</small></div>`;
+    }).join("")}</div>${ids.length > shown ? `<button class="big-btn alt more" id="more">Afficher ${Math.min(PAGE, ids.length - shown)} créatures de plus (${shown} / ${ids.length})</button>` : ""}`
+      : `<p class="empty">Aucune créature capturée dans « ${STAGE_PLURAL[dexStage]} » pour l'instant.</p>`;
+    const more = document.getElementById("more");
+    if (more) more.onclick = () => { shown += PAGE; grid(); };
+  };
+  document.querySelectorAll(".tile").forEach(t => t.onclick = () => {
+    dexStage = Number(t.dataset.st); shown = PAGE;
+    document.querySelectorAll(".tile").forEach(x => { const on = x === t; x.classList.toggle("on", on); x.setAttribute("aria-pressed", on); });
+    grid();
+  });
+  document.getElementById("only-caught").onchange = e => { dexOnlyCaught = e.target.checked; shown = PAGE; grid(); };
+  grid();
+}
+
+const KEY = "defi2min-scores";
+function loadScores() { try { const s = JSON.parse(localStorage.getItem(KEY)) || {}; return { calc: s.calc || [], num: s.num || [], sous: s.sous || [], mult: s.mult || [], plus: s.plus || [] }; } catch (e) { return { calc: [], num: [], sous: [], mult: [], plus: [] }; } }
+function addScore(mode, score, total) {
+  const all = loadScores(), entry = { score, total, date: Date.now(), who: player };
+  all[mode] = [...all[mode], entry].sort((a, b) => b.score - a.score || a.date - b.date).slice(0, 10);
+  try { localStorage.setItem(KEY, JSON.stringify(all)); } catch (e) {}
+  const rank = all[mode].indexOf(entry);
+  return rank >= 0 ? rank + 1 : null;
+}
+const fmtDate = t => new Date(t).toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit", year: "numeric" }) + " à " + new Date(t).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
+const rankMsg = r => r ? `<p class="rank">${r === 1 ? "Nouveau record !" : `Tu entres dans les meilleurs scores : ${r}e place.`}</p>` : "";
+
+/* ---------- Nombres en lettres ---------- */
+const U = ["zéro","un","deux","trois","quatre","cinq","six","sept","huit","neuf","dix","onze","douze","treize","quatorze","quinze","seize"];
+const T = { 2: "vingt", 3: "trente", 4: "quarante", 5: "cinquante", 6: "soixante" };
+function lettres(n) {
+  if (n < 17) return U[n];
+  if (n < 20) return "dix-" + U[n - 10];
+  const t = Math.floor(n / 10), u = n % 10;
+  if (t === 7) return n === 71 ? "soixante et onze" : "soixante-" + lettres(n - 60);
+  if (t === 9) return "quatre-vingt-" + lettres(n - 80);
+  if (t === 8) return u === 0 ? "quatre-vingts" : "quatre-vingt-" + U[u];
+  if (u === 0) return T[t];
+  return u === 1 ? T[t] + " et un" : T[t] + "-" + U[u];
+}
+
+/* ---------- Timer ---------- */
+let timer = null;
+function timerHTML() {
+  return `<div class="timer" id="timer"><svg viewBox="0 0 80 80"><circle class="track" cx="40" cy="40" r="34"/><circle class="prog" id="prog" cx="40" cy="40" r="34" stroke-dasharray="213.6" stroke-dashoffset="0"/></svg><b id="clock">2:00</b></div>`;
+}
+/* ---------- Gong de fin (son synthétisé, sans fichier) ---------- */
+let audio = null;
+function unlockAudio() {
+  try { audio = audio || new (window.AudioContext || window.webkitAudioContext)(); if (audio.state === "suspended") audio.resume(); } catch (e) { audio = null; }
+}
+function gong() {
+  if (!audio) return;
+  const now = audio.currentTime + 0.02, out = audio.createGain();
+  out.gain.value = 0.55; out.connect(audio.destination);
+  // Partiels inharmoniques d'un gong : fréquence, volume, durée
+  [[196, 1, 11], [294, .55, 10], [392, .5, 9], [534, .35, 7.5], [662, .3, 6], [824, .2, 5], [1046, .14, 3.5], [1386, .1, 2.5]].forEach(([f, v, d]) => {
+    const osc = audio.createOscillator(), g = audio.createGain();
+    osc.type = "sine"; osc.frequency.setValueAtTime(f * 1.02, now); osc.frequency.exponentialRampToValueAtTime(f, now + 0.4);
+    g.gain.setValueAtTime(0.0001, now); g.gain.exponentialRampToValueAtTime(v * 0.35, now + 0.015); g.gain.exponentialRampToValueAtTime(0.0001, now + d);
+    osc.connect(g); g.connect(out); osc.start(now); osc.stop(now + d + 0.1);
+  });
+  // Coup de mailloche : bruit très bref
+  const len = Math.floor(audio.sampleRate * 0.08), buf = audio.createBuffer(1, len, audio.sampleRate), ch = buf.getChannelData(0);
+  for (let i = 0; i < len; i++) ch[i] = (Math.random() * 2 - 1) * (1 - i / len) ** 3;
+  const noise = audio.createBufferSource(), lp = audio.createBiquadFilter(), ng = audio.createGain();
+  noise.buffer = buf; lp.type = "lowpass"; lp.frequency.value = 1200; ng.gain.value = 0.25;
+  noise.connect(lp); lp.connect(ng); ng.connect(out); noise.start(now);
+}
+/* ---------- Musique de fond ---------- */
+const bgmMenu = document.getElementById("bgm"), bgmJeu = document.getElementById("bgm-jeu"), musicBtn = document.getElementById("music-btn");
+let musicOn = true, bgm = bgmMenu, musicTimer = null, gongAt = 0;
+try { musicOn = localStorage.getItem("defi2min-musique") !== "non"; } catch (e) {}
+bgmMenu.volume = 0.3; bgmJeu.volume = 0.3;
+function playMusic() { if (musicOn && bgm && bgm.paused) bgm.play().catch(() => {}); }
+// "menu" : musique des menus ; "jeu" : musique du chrono, depuis le début ; "silence" : rien (bips et gong)
+function musicMode(mode) {
+  clearTimeout(musicTimer);
+  if (mode === "silence") { bgmMenu.pause(); bgmJeu.pause(); bgm = null; return; }
+  if (mode === "jeu") { bgmMenu.pause(); bgmJeu.currentTime = 0; bgm = bgmJeu; playMusic(); return; }
+  bgmJeu.pause(); bgm = bgmMenu;
+  const wait = Math.max(0, gongAt + 4000 - Date.now());   // laisse le gong résonner avant de reprendre
+  if (wait) { bgm = null; musicTimer = setTimeout(() => { bgm = bgmMenu; playMusic(); }, wait); } else playMusic();
+}
+function showMusic() { musicBtn.textContent = musicOn ? "♪ Musique : oui" : "♪ Musique : non"; musicBtn.setAttribute("aria-pressed", musicOn); }
+musicBtn.onclick = e => {
+  e.stopPropagation();
+  musicOn = !musicOn;
+  try { localStorage.setItem("defi2min-musique", musicOn ? "oui" : "non"); } catch (err) {}
+  if (musicOn) playMusic(); else { bgmMenu.pause(); bgmJeu.pause(); }
+  showMusic();
+};
+// Le navigateur n'autorise le son qu'après un premier geste : la musique démarre au premier clic ou à la première touche.
+["pointerdown", "keydown"].forEach(ev => document.addEventListener(ev, playMusic));
+showMusic();
+playMusic();   // tente de lancer la musique dès l'ouverture (si le navigateur le permet)
+
+// Petit bip léger pour le compte à rebours
+function bip() {
+  if (!audio) return;
+  const now = audio.currentTime + 0.01, osc = audio.createOscillator(), g = audio.createGain();
+  osc.type = "sine"; osc.frequency.value = 880;
+  g.gain.setValueAtTime(0.0001, now); g.gain.exponentialRampToValueAtTime(0.12, now + 0.01); g.gain.exponentialRampToValueAtTime(0.0001, now + 0.15);
+  osc.connect(g); g.connect(audio.destination); osc.start(now); osc.stop(now + 0.2);
+}
+// Bonne réponse : petit arpège de harpe (do – mi – sol – do)
+function harpe() {
+  if (!audio) return;
+  const t0 = audio.currentTime + 0.01;
+  [523.25, 659.25, 783.99, 1046.5].forEach((f, i) => {
+    const t = t0 + i * 0.07;
+    [[1, "triangle", 0.16], [2, "sine", 0.05], [3, "sine", 0.02]].forEach(([k, type, v]) => {   // fondamentale + harmoniques
+      const osc = audio.createOscillator(), g = audio.createGain();
+      osc.type = type; osc.frequency.value = f * k;
+      g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(v, t + 0.006); g.gain.exponentialRampToValueAtTime(0.0001, t + 1.1 / k);
+      osc.connect(g); g.connect(audio.destination); osc.start(t); osc.stop(t + 1.2);
+    });
+  });
+}
+// Mauvaise réponse : buzz grave et court
+function buzz() {
+  if (!audio) return;
+  const t = audio.currentTime + 0.01, lp = audio.createBiquadFilter(), g = audio.createGain();
+  lp.type = "lowpass"; lp.frequency.value = 900;
+  g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.18, t + 0.02);
+  g.gain.setValueAtTime(0.18, t + 0.3); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.42);
+  lp.connect(g); g.connect(audio.destination);
+  [110, 116].forEach(f => {   // deux notes un peu fausses = effet « bzzz »
+    const osc = audio.createOscillator(); osc.type = "sawtooth"; osc.frequency.value = f;
+    osc.connect(lp); osc.start(t); osc.stop(t + 0.45);
+  });
+}
+function startTimer(onEnd) {
+  unlockAudio();
+  musicMode("jeu");
+  let lastBip = 4;
+  const t0 = performance.now();
+  clearInterval(timer);
+  timer = setInterval(() => {
+    const left = Math.max(0, DUREE - (performance.now() - t0) / 1000);
+    const s = Math.ceil(left);
+    const el = document.getElementById("clock");
+    if (!el) return clearInterval(timer);
+    el.textContent = Math.floor(s / 60) + ":" + String(s % 60).padStart(2, "0");
+    document.getElementById("prog").setAttribute("stroke-dashoffset", (213.6 * (1 - left / DUREE)).toFixed(1));
+    document.getElementById("timer").classList.toggle("low", left <= 15);
+    if (s >= 1 && s <= 3 && s < lastBip) { if (lastBip === 4) musicMode("silence"); lastBip = s; bip(); }   // bips à 3, 2 et 1 seconde
+    if (left <= 0) { clearInterval(timer); gongAt = Date.now(); gong(); onEnd(); }
+  }, 200);
+}
+
+/* ---------- Menu ---------- */
+function menu() {
+  clearInterval(timer); document.onkeydown = null;
+  const sc = loadScores(), best = { calc: sc.calc[0]?.score, num: sc.num[0]?.score, sous: sc.sous[0]?.score, mult: sc.mult[0]?.score, plus: sc.plus[0]?.score };
+  app.innerHTML = `
+    <div class="title-row"><h1>Défi <span>2 minutes</span></h1><div class="mini-row"><button class="ghost mini" id="go-admin">Réglages</button><button class="ghost mini" id="go-players">Changer de joueur</button></div></div>
+    <header class="top"><p class="lead">Chaque bonne réponse attrape une créature sauvage. Combien vas-tu en attraper en 2 minutes ?</p><div class="parade">${creatureSVG(0, 58)}${creatureSVG(1, 68)}${creatureSVG(2, 80)}</div></header>
+    <div class="who"><span>Joueur : <strong>${esc(player)}</strong></span><button class="big-btn alt" id="go-scores">Meilleurs scores</button><button class="big-btn alt" id="go-dex">Collection</button></div>
+    <div class="modes">
+      <button class="mode" id="go-calc">
+        <h2>Calcul mental</h2>
+        <div class="ex">8 + 2 = ? · 10 − 7 = ? · 6 + 5 = ?</div>
+        <p>Connaître les compléments à ${settings.calc.cible} : additions et soustractions.</p>
+        <div class="best">Meilleur score : ${best.calc != null ? best.calc + " bonnes réponses · ceinture " + belt(best.calc).name : "pas encore joué"}</div>
+        <span class="go">Commencer</span>
+      </button>
+      <button class="mode" id="go-plus">
+        <h2>Calcul mental +</h2>
+        <div class="ex">8 + 2 = ? · 10 − 7 = ? · 3 × 6 = ?</div>
+        <p>Les calculs du calcul mental et des multiplications, mélangés.</p>
+        <div class="best">Meilleur score : ${best.plus != null ? best.plus + " bonnes réponses · ceinture " + belt(best.plus).name : "pas encore joué"}</div>
+        <span class="go">Commencer</span>
+      </button>
+      <button class="mode" id="go-num">
+        <h2>Les nombres jusqu'à 99</h2>
+        <div class="ex">5d 4u · 50 + 4 · cinquante-quatre</div>
+        <p>Compte les paquets de 10 et les unités, puis barre les étiquettes fausses.</p>
+        <div class="best">Meilleur score : ${best.num != null ? best.num + " exercices réussis" + (medal(best.num) ? " · " + medal(best.num).name.toLowerCase() : "") : "pas encore joué"}</div>
+        <span class="go">Commencer</span>
+      </button>
+      <button class="mode" id="go-sous">
+        <h2>Soustractions</h2>
+        <div class="ex">9 − 4 = ? · 7 − 3 = ? · 10 − 6 = ?</div>
+        <p>Soustractions avec des nombres jusqu'à ${settings.sous.max}.</p>
+        <div class="best">Meilleur score : ${best.sous != null ? best.sous + " bonnes réponses · ceinture " + belt(best.sous).name : "pas encore joué"}</div>
+        <span class="go">Commencer</span>
+      </button>
+      <button class="mode" id="go-mult">
+        <h2>Multiplications</h2>
+        <div class="ex">4 × 2 = ? · 3 × 7 = ? · 9 × 3 = ?</div>
+        <p>${tablesText(settings.mult.tables)}.</p>
+        <div class="best">Meilleur score : ${best.mult != null ? best.mult + " bonnes réponses" + (medal(best.mult) ? " · " + medal(best.mult).name.toLowerCase() : "") : "pas encore joué"}</div>
+        <span class="go">Commencer</span>
+      </button>
+
+    </div>
+    <section class="belts"><h3>Couleur de ceinture (calcul mental, soustractions et calcul mental +)</h3><div class="belt-row">
+      ${BELTS.map((b, i) => `<div class="belt-chip"><span class="sw" style="background:${b.color}"></span><span>${b.name}<br><small>${RANGES[i]}</small></span></div>`).join("")}
+    </div></section>
+    <section class="belts"><h3>Médailles (nombres jusqu'à 99 et multiplications)</h3><div class="belt-row">
+      ${MEDALS.map(m => `<div class="belt-chip">${medalSVG(m, 22)}<span>${m.name}<br><small>${m.range} réponses justes</small></span></div>`).join("")}
+    </div></section>`;
+  document.getElementById("go-calc").onclick = () => calcGame("calc");
+  document.getElementById("go-sous").onclick = () => calcGame("sous");
+  document.getElementById("go-mult").onclick = () => calcGame("mult");
+  document.getElementById("go-plus").onclick = () => calcGame("plus");
+  document.getElementById("go-num").onclick = numGame;
+  document.getElementById("go-scores").onclick = scoresPage;
+  document.getElementById("go-dex").onclick = collectionPage;
+  document.getElementById("go-players").onclick = playersPage;
+  document.getElementById("go-admin").onclick = adminPage;
+}
+
+/* ---------- Administration : réglages des jeux ---------- */
+const tablesText = t => t.length === 1 ? `La table de ${t[0]}` : `Les tables de ${t.slice(0, -1).join(", ")} et de ${t[t.length - 1]}`;
+function adminPage() {
+  clearInterval(timer); document.onkeydown = null;
+  const s = settings;
+  const num = (id, label, val, min, max, hint) => `<label class="field" for="${id}"><span>${label}</span><input type="number" id="${id}" value="${val}" min="${min}" max="${max}" inputmode="numeric"><small>${hint}</small></label>`;
+  app.innerHTML = `
+    <header class="top"><div><h1><span>Réglages</span></h1><p class="lead">Choisis les nombres utilisés dans chaque jeu. Les réglages sont enregistrés sur cet appareil.</p></div><button class="big-btn alt" id="back">Menu</button></header>
+    <form id="admin" class="admin">
+      <section class="review"><h3>Calcul mental <small>(aussi utilisé par Calcul mental +)</small></h3><div class="fields">
+        ${num("a-cible", "Compléments à", s.calc.cible, 3, 100, "10 donne 8 + 2, 10 − 7…")}
+        ${num("a-addmax", "Plus grand nombre des additions", s.calc.addMax, 2, 50, "9 donne au plus 9 + 9")}
+      </div></section>
+      <section class="review"><h3>Soustractions</h3><div class="fields">
+        ${num("a-sousmax", "Plus grand nombre", s.sous.max, 2, 100, "10 donne au plus 10 − 10")}
+        <label class="check" for="a-zero"><input type="checkbox" id="a-zero"${s.sous.zero ? " checked" : ""}> Autoriser « − 0 » (ex. 7 − 0)</label>
+      </div></section>
+      <section class="review"><h3>Multiplications <small>(aussi utilisé par Calcul mental +)</small></h3>
+        <p class="lbl">Tables proposées</p>
+        <div class="tables">${[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(n => `<label class="tchip" for="a-t${n}"><input type="checkbox" id="a-t${n}" data-t="${n}"${s.mult.tables.includes(n) ? " checked" : ""}><span>× ${n}</span></label>`).join("")}</div>
+        <div class="fields">${num("a-multmax", "Multiplier jusqu'à", s.mult.multMax, 1, 12, "10 donne de 1 × 3 à 10 × 3")}</div>
+      </section>
+      <section class="review"><h3>Les nombres jusqu'à 99</h3><div class="fields">
+        ${num("a-nummin", "Plus petit nombre", s.num.min, 11, 99, "au moins 11")}
+        ${num("a-nummax", "Plus grand nombre", s.num.max, 11, 99, "au plus 99")}
+      </div></section>
+      <p class="err" id="a-err" hidden></p>
+      <p class="saved" id="a-ok" hidden>Réglages enregistrés.</p>
+      <div class="actions"><button class="big-btn" type="submit">Enregistrer</button><button class="big-btn alt" type="button" id="a-reset">Remettre les valeurs de départ</button></div>
+    </form>`;
+  const v = id => Number(document.getElementById(id).value);
+  const err = msg => { const e = document.getElementById("a-err"); e.textContent = msg; e.hidden = false; document.getElementById("a-ok").hidden = true; };
+  const inRange = (x, a, b) => Number.isInteger(x) && x >= a && x <= b;
+  document.getElementById("admin").onsubmit = e => {
+    e.preventDefault();
+    const tables = [...document.querySelectorAll("[data-t]")].filter(c => c.checked).map(c => Number(c.dataset.t));
+    const n = { cible: v("a-cible"), addMax: v("a-addmax"), sousMax: v("a-sousmax"), multMax: v("a-multmax"), min: v("a-nummin"), max: v("a-nummax") };
+    if (!inRange(n.cible, 3, 100)) return err("Compléments à : choisis un nombre entre 3 et 100.");
+    if (!inRange(n.addMax, 2, 50)) return err("Additions : choisis un nombre entre 2 et 50.");
+    if (!inRange(n.sousMax, 2, 100)) return err("Soustractions : choisis un nombre entre 2 et 100.");
+    if (!tables.length) return err("Multiplications : coche au moins une table.");
+    if (!inRange(n.multMax, 1, 12)) return err("Multiplier jusqu'à : choisis un nombre entre 1 et 12.");
+    if (!inRange(n.min, 11, 99) || !inRange(n.max, 11, 99) || n.min > n.max) return err("Nombres : le plus petit et le plus grand doivent être entre 11 et 99, le plus petit d'abord.");
+    settings = {
+      calc: { cible: n.cible, addMax: n.addMax },
+      sous: { max: n.sousMax, zero: document.getElementById("a-zero").checked },
+      mult: { tables, multMax: n.multMax },
+      num: { min: n.min, max: n.max },
+    };
+    try { localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings)); } catch (x) {}
+    document.getElementById("a-err").hidden = true; document.getElementById("a-ok").hidden = false;
+  };
+  document.getElementById("a-reset").onclick = () => {
+    try { localStorage.removeItem(SETTINGS_KEY); } catch (x) {}
+    settings = loadSettings(); adminPage();
+    document.getElementById("a-ok").textContent = "Valeurs de départ remises."; document.getElementById("a-ok").hidden = false;
+  };
+  document.getElementById("back").onclick = menu;
+}
+
+/* ---------- Choix du joueur ---------- */
+function playersPage() {
+  clearInterval(timer); document.onkeydown = null;
+  const p = loadPlayers();
+  const card = (n, i) => {
+    const d = dexOf(n), ids = Object.keys(d).filter(k => d[k] > 0).map(Number);
+    const face = ids.length ? Math.max(...ids.filter(id => id % 3 === Math.max(...ids.map(x => x % 3)))) : 0;
+    return `<button class="tile player${n === player ? " on" : ""}" data-i="${i}"><span class="${ids.length ? "" : "unknown"}">${creatureSVG(face, 56)}</span><strong>${esc(n)}</strong><small>${ids.length} / ${NB_ESPECES * 3} créatures</small></button>`;
+  };
+  app.innerHTML = `
+    <header class="top"><div><h1>Qui <span>joue ?</span></h1><p class="lead">Sélectionne ton joueur ou entre un nouveau nom.</p></div>${player ? `<button class="big-btn alt" id="back">Menu</button>` : ""}</header>
+    <form class="pseudo" id="pf">
+      <label for="pseudo">Nouveau joueur</label>
+      <div class="row"><input id="pseudo" maxlength="16" placeholder="Écris ton pseudo" autocomplete="off"><button class="big-btn" type="submit">C'est moi !</button></div>
+      <p class="err" id="err" hidden>Écris un pseudo d'au moins 2 lettres.</p>
+    </form>
+    ${p.list.length ? `<section class="review"><h3>Joueurs déjà inscrits <small>touche ton pseudo pour jouer</small></h3><div class="players">${p.list.map(card).join("")}</div></section>` : ""}`;
+  document.getElementById("pf").onsubmit = e => {
+    e.preventDefault();
+    const v = document.getElementById("pseudo").value.trim().replace(/\s+/g, " ");
+    if (v.length < 2) { document.getElementById("err").hidden = false; return; }
+    choosePlayer(v); menu();
+  };
+  document.querySelectorAll(".player").forEach(b => b.onclick = () => { choosePlayer(p.list[b.dataset.i]); menu(); });
+  const back = document.getElementById("back"); if (back) back.onclick = menu;
+}
+
+/* ---------- Meilleurs scores ---------- */
+function scoresPage() {
+  clearInterval(timer); document.onkeydown = null;
+  const sc = loadScores();
+  const table =(list, mode) => list.length ? `<div class="tbl"><table>
+      <thead><tr><th>Place</th><th>Joueur</th><th>Score</th><th>${mode === "num" || mode === "mult" ? "Médaille" : "Ceinture"}</th><th>Date et heure</th></tr></thead>
+      <tbody>${list.map((s, i) => {
+        const usesMedal = mode === "num" || mode === "mult";
+        const r = usesMedal ? medal(s.score) : belt(s.score);
+        const award = !usesMedal ? `<span class="sw" style="background:${r.color}"></span>${r.name}` : (r ? `${medalSVG(r, 18)}${r.short}` : `<span class="none">—</span>`);
+        return `<tr><td class="pl">${i + 1}</td><td class="who-cell">${s.who ? esc(s.who) : "—"}</td><td><strong>${s.score}</strong> <small>/ ${s.total}</small></td><td><span class="aw">${award}</span></td><td>${fmtDate(s.date)}</td></tr>`;
+      }).join("")}</tbody></table></div>` : `<p class="empty">Aucune partie terminée pour l'instant. Joue une partie pour voir ton score ici.</p>`;
+  app.innerHTML = `
+    <header class="top"><div><h1>Meilleurs <span>scores</span></h1><p class="lead">Les 10 meilleures parties de chaque exercice, tous joueurs confondus, enregistrées sur cet appareil.</p></div><button class="big-btn alt" id="back">Menu</button></header>
+    <section class="review"><h3>Calcul mental</h3>${table(sc.calc, "calc")}</section>
+    <section class="review"><h3>Les nombres jusqu'à 99</h3>${table(sc.num, "num")}</section>
+    <section class="review"><h3>Soustractions</h3>${table(sc.sous, "sous")}</section>
+    <section class="review"><h3>Multiplications</h3>${table(sc.mult, "mult")}</section>
+    <section class="review"><h3>Calcul mental +</h3>${table(sc.plus, "plus")}</section>`;
+  document.getElementById("back").onclick = menu;
+}
+
+/* ---------- Collection ---------- */
+function collectionPage() {
+  clearInterval(timer); document.onkeydown = null;
+  const dex = loadDex();
+  app.innerHTML = `
+    <header class="top"><div><h1>Ma <span>collection</span></h1><p class="lead">Toutes les créatures attrapées par ${esc(player)}.</p></div><button class="big-btn alt" id="back">Menu</button></header>
+    ${dexHTML(dex)}`;
+  bindDex(dex);
+  document.getElementById("back").onclick = menu;
+}
+
+/* ---------- Calcul mental ---------- */
+/* ---------- Réglages (page Administration) ---------- */
+const SETTINGS_KEY = "defi2min-reglages";
+const DEFAULTS = {
+  calc: { cible: 10, addMax: 9 },
+  sous: { max: 10, zero: false },
+  mult: { tables: [2, 3], multMax: 10 },
+  num:  { min: 21, max: 99 },
+};
+function loadSettings() {
+  let s = {};
+  try { s = JSON.parse(localStorage.getItem(SETTINGS_KEY)) || {}; } catch (e) {}
+  const out = {};
+  Object.keys(DEFAULTS).forEach(k => out[k] = { ...DEFAULTS[k], ...(s[k] || {}) });
+  return out;
+}
+let settings = loadSettings();
+
+function makeCalc(prev) {
+  const { cible: C, addMax } = settings.calc;
+  let q, tries = 0;
+  do {
+    const r = Math.random();
+    if (r < 0.4) { const a = rnd(1, C - 1); q = { a, op: "+", b: C - a }; }
+    else if (r < 0.75) { const b = rnd(0, C); q = { a: C, op: "−", b }; }
+    else { q = { a: rnd(2, addMax), op: "+", b: rnd(2, addMax) }; }
+    q.res = q.op === "+" ? q.a + q.b : q.a - q.b;
+  } while (prev && prev.a === q.a && prev.b === q.b && prev.op === q.op && ++tries < 20);
+  q.cr = pickCreature(prev ? Math.floor(prev.cr / 3) : -1);
+  return q;
+}
+/* ---------- Soustractions CE1 ---------- */
+function makeSous(prev) {
+  const { max: M, zero } = settings.sous;
+  let q, tries = 0;
+  do {
+    // Tous les nombres restent entre 0 et le maximum choisi (au plus M − M)
+    const a = rnd(2, M), b = rnd(zero ? 0 : 1, a);
+    q = { a, op: "−", b, res: a - b };
+  } while (prev && prev.a === q.a && prev.b === q.b && ++tries < 20);
+  q.cr = pickCreature(prev ? Math.floor(prev.cr / 3) : -1);
+  return q;
+}
+/* ---------- Multiplications : tables de 2 et de 3 ---------- */
+function makeMult(prev) {
+  const { tables, multMax } = settings.mult;
+  let q, tries = 0;
+  do {
+    const n = rnd(1, multMax), t = tables[rnd(0, tables.length - 1)];
+    q = Math.random() < 0.5 ? { a: n, op: "×", b: t, res: n * t } : { a: t, op: "×", b: n, res: n * t };
+  } while (prev && prev.a === q.a && prev.b === q.b && ++tries < 20);
+  q.cr = pickCreature(prev ? Math.floor(prev.cr / 3) : -1);
+  return q;
+}
+const GAMES = {
+  calc: { title: "Calcul mental", gen: makeCalc },
+  sous: { title: "Soustractions", gen: makeSous },
+  mult: { title: "Multiplications", gen: makeMult, medals: true },
+  // Calcul mental + : mélange des calculs de « Calcul mental » et de « Multiplications »
+  plus: { title: "Calcul mental +", gen: prev => (Math.random() < 0.5 ? makeCalc : makeMult)(prev) },
+};
+function calcGame(kind = "calc") {
+  if (typeof kind !== "string") kind = "calc";
+  const G = GAMES[kind], makeCalc = G.gen;
+  const hist = []; let cur = makeCalc(), typed = "", locked = false;
+  app.innerHTML = `
+    <div class="bar">${timerHTML()}<div class="info"><h2>${G.title}</h2><div id="count">0 bonne réponse</div></div><button class="ghost" id="stop">Arrêter</button></div>
+    <div class="card" id="card">
+      <div class="wild" id="wild"></div>
+      <div class="calc"><span id="qtxt"></span><span>=</span><span class="answer" id="ans"></span><span class="fix" id="fix"></span></div>
+      <div class="pad">${[1,2,3,4,5,6,7,8,9].map(n => `<button data-k="${n}">${n}</button>`).join("")}<button class="del" data-k="del">Effacer</button><button data-k="0">0</button><button class="ok-btn" data-k="ok">OK</button></div>
+      <p class="hint">Tu peux aussi taper au clavier puis appuyer sur Entrée.</p>
+    </div>`;
+  const show = () => { document.getElementById("qtxt").textContent = `${cur.a} ${cur.op} ${cur.b}`; document.getElementById("ans").textContent = typed; };
+  const count = () => { const n = hist.filter(h => h.ok).length; document.getElementById("count").textContent = `${n} bonne${n > 1 ? "s" : ""} réponse${n > 1 ? "s" : ""} · ${hist.length} calcul${hist.length > 1 ? "s" : ""}`; };
+  const key = k => {
+    if (locked) return;
+    if (k === "del") typed = typed.slice(0, -1);
+    else if (k === "ok") {
+      if (!typed) return;
+      const ok = Number(typed) === cur.res; hist.push({ ...cur, given: Number(typed), ok, isNew: ok && addCatch(cur.cr) }); count();
+      const card = document.getElementById("card"); card.classList.add(ok ? "ok" : "ko");
+      if (!ok) document.getElementById("fix").textContent = cur.res;
+      wildEnd(ok, cur.cr); (ok ? harpe : buzz)();
+      locked = true;
+      setTimeout(() => { if (!document.getElementById("card")) return; card.classList.remove("ok", "ko"); document.getElementById("fix").textContent = ""; cur = makeCalc(cur); typed = ""; locked = false; showWild(); show(); }, ok ? 650 : 1200);
+    } else if (typed.length < 3) typed += k;
+    show();
+  };
+  app.querySelectorAll(".pad button").forEach(b => b.onclick = () => key(b.dataset.k));
+  document.onkeydown = e => {
+    if (/^[0-9]$/.test(e.key)) key(e.key);
+    else if (e.key === "Backspace") key("del");
+    else if (e.key === "Enter") { e.preventDefault(); key("ok"); }
+  };
+  const showWild = () => { const w = document.getElementById("wild"); w.className = "wild"; w.innerHTML = wildHTML(cur.cr); };
+  document.getElementById("stop").onclick = () => endCalc(hist, kind);
+  showWild(); show(); startTimer(() => endCalc(hist, kind));
+}
+function endCalc(hist, kind) {
+  clearInterval(timer); document.onkeydown = null; musicMode("menu");
+  const good = hist.filter(h => h.ok).length, b = belt(good), m = medal(good);
+  const rank = hist.length ? addScore(kind, good, hist.length) : null;
+  const award = !GAMES[kind].medals
+    ? `<div class="belt-big"><span class="sw" style="background:${b.color}"></span><strong>Ceinture obtenue : ${b.name}</strong></div>`
+    : m ? `<div class="belt-big">${medalSVG(m)}<strong>${m.name} !</strong></div>` : `<p class="rank-none">Pas encore de médaille : il faut 6 bonnes réponses pour le bronze.</p>`;
+  app.innerHTML = `
+    <div class="result">
+      <h2>Score</h2>
+      <div class="score-ring"><div>${good}<small>/ ${hist.length}</small></div></div>
+      ${award}
+      ${rankMsg(rank)}
+      <div class="actions"><button class="big-btn" id="again">Rejouer</button><button class="big-btn alt" id="scores">Meilleurs scores</button><button class="big-btn alt" id="back">Menu</button></div>
+    </div>
+    ${caughtHTML(hist)}
+    ${hist.length ? `<section class="review"><h3>Correction</h3><ul>${hist.map(h => `<li class="${h.ok ? "ok" : "ko"}">${h.ok ? "✓" : "✗"} ${h.a} ${h.op} ${h.b} = ${h.ok ? h.res : `<s>${h.given}</s> ${h.res}`}</li>`).join("")}</ul></section>` : ""}`;
+  document.getElementById("again").onclick = () => calcGame(kind);
+  document.getElementById("scores").onclick = scoresPage;
+  document.getElementById("back").onclick = menu;
+}
+
+/* ---------- Numération ---------- */
+const THEMES = [
+  { q: "Combien y a-t-il de billes ?", grp: "sacs de 10 billes", one: "billes isolées", draw: "sac" },
+  { q: "Combien y a-t-il de cubes ?", grp: "barres de 10", one: "cubes isolés", draw: "barre" },
+  { q: "Combien y a-t-il d'images ?", grp: "paquets de 10", one: "images isolées", draw: "paquet" },
+  { q: "Combien y a-t-il de jetons ?", grp: "sacs de 10 jetons", one: "jetons isolés", draw: "sac" },
+];
+function svgGroup(kind) {
+  if (kind === "barre") {
+    let r = ""; for (let i = 0; i < 10; i++) r += `<rect x="2" y="${2 + i * 9}" width="16" height="8" rx="1.5" fill="var(--pen-soft)" stroke="var(--pen)" stroke-width="1.5"/>`;
+    return `<svg width="20" height="94" viewBox="0 0 20 94" aria-hidden="true">${r}</svg>`;
+  }
+  if (kind === "paquet") {
+    return `<svg width="46" height="56" viewBox="0 0 46 56" aria-hidden="true"><rect x="8" y="2" width="34" height="46" rx="4" fill="var(--pen-soft)" stroke="var(--pen)" stroke-width="1.5"/><rect x="4" y="6" width="34" height="46" rx="4" fill="var(--pen-soft)" stroke="var(--pen)" stroke-width="1.5"/><rect x="1" y="9" width="34" height="46" rx="4" fill="var(--sheet)" stroke="var(--pen)" stroke-width="2"/><text x="18" y="38" text-anchor="middle" font-family="Baloo 2, sans-serif" font-weight="800" font-size="17" fill="var(--pen)">10</text></svg>`;
+  }
+  return `<svg width="50" height="58" viewBox="0 0 50 58" aria-hidden="true"><path d="M17 8 Q25 2 33 8 L30 14 Q44 22 44 38 Q44 55 25 55 Q6 55 6 38 Q6 22 20 14 Z" fill="var(--pen-soft)" stroke="var(--pen)" stroke-width="2"/><path d="M18 14 Q25 17 32 14" fill="none" stroke="var(--pen)" stroke-width="2"/><text x="25" y="44" text-anchor="middle" font-family="Baloo 2, sans-serif" font-weight="800" font-size="16" fill="var(--pen)">10</text></svg>`;
+}
+function svgOne(kind) {
+  if (kind === "barre") return `<svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><rect x="1.5" y="1.5" width="13" height="13" rx="2" fill="var(--pen-soft)" stroke="var(--pen)" stroke-width="1.5"/></svg>`;
+  if (kind === "paquet") return `<svg width="16" height="20" viewBox="0 0 16 20" aria-hidden="true"><rect x="1" y="1" width="14" height="18" rx="2" fill="var(--sheet)" stroke="var(--pen)" stroke-width="1.5"/><circle cx="8" cy="10" r="3" fill="var(--pen)"/></svg>`;
+  return `<svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6.5" fill="var(--pen-soft)" stroke="var(--pen)" stroke-width="1.5"/><circle cx="6" cy="6" r="1.6" fill="var(--sheet)"/></svg>`;
+}
+function wrongWords(n) {
+  const t = Math.floor(n / 10), u = n % 10;
+  if ((t === 7 || t === 9) && u > 0) return (t === 7 ? "soixante-dix-" : "quatre-vingt-dix-") + U[u];
+  if (u > 0 && u !== t && u >= 2) return lettres(u * 10 + t);
+  return lettres(n < 90 ? n + 10 : n - 10);
+}
+function makeNum() {
+  const n = rnd(settings.num.min, settings.num.max), t = Math.floor(n / 10), u = n % 10;
+  const split = u <= 6 && t >= 3 && Math.random() < 0.25;           // ex. 6 barres de 10 et 15 cubes
+  const gT = split ? t - 1 : t, gU = split ? u + 10 : u;
+  const vrais = [String(n), lettres(n), `${t}d ${u}u`, `${t * 10} + ${u}`];
+  if (t >= 2 && (split || Math.random() < 0.4)) vrais.push(Math.random() < 0.5 ? `${(t - 1) * 10} + ${u + 10}` : `${t - 1}d ${u + 10}u`);
+  if (Math.random() < 0.3) vrais.push(`${u}u ${t}d`);
+  const faux = [];
+  if (u > 0 && u !== t) faux.push(String(u * 10 + t), `${u}d ${t}u`, `${u * 10} + ${t}`);
+  faux.push(wrongWords(n), String(n + (Math.random() < 0.5 ? 1 : -1)), `${t}d ${u === 9 ? u - 1 : u + 1}u`);
+  if (t > 2) faux.push(`${(t - 1) * 10} + ${u + 2}`);
+  const uniq = arr => [...new Set(arr)];
+  const v = shuffle(uniq(vrais)).slice(0, rnd(3, 4));
+  const f = shuffle(uniq(faux).filter(x => !vrais.includes(x))).slice(0, 7 - v.length);
+  const labels = shuffle([...v.map(x => ({ txt: x, ok: true })), ...f.map(x => ({ txt: x, ok: false }))]);
+  return { n, gT, gU, theme: THEMES[rnd(0, THEMES.length - 1)], labels, cr: pickCreature(-1) };
+}
+function numGame() {
+  const hist = []; let cur, locked = false;
+  app.innerHTML = `
+    <div class="bar">${timerHTML()}<div class="info"><h2>Les nombres jusqu'à 99</h2><div id="count">0 exercice réussi</div></div><button class="ghost" id="stop">Arrêter</button></div>
+    <div class="card" id="card"></div>`;
+  const count = () => { const n = hist.filter(h => h.ok).length; document.getElementById("count").textContent = `${n} exercice${n > 1 ? "s" : ""} réussi${n > 1 ? "s" : ""} · ${hist.length} fait${hist.length > 1 ? "s" : ""}`; };
+  const render = () => {
+    cur = makeNum(); locked = false;
+    const k = cur.theme.draw;
+    document.getElementById("card").innerHTML = `
+      <div class="wild" id="wild">${wildHTML(cur.cr)}</div>
+      <div class="q">${cur.theme.q}<br><small style="color:var(--muted);font-family:var(--font-body);font-size:.95rem">Compte bien, puis barre les étiquettes fausses.</small></div>
+      <div class="scene"><div class="groups">${svgGroup(k).repeat(cur.gT)}</div>${cur.gU ? `<div class="singles">${svgOne(k).repeat(cur.gU)}</div>` : ""}</div>
+      <div class="labels">${cur.labels.map((l, i) => `<button class="lab" data-i="${i}" aria-pressed="false">${l.txt}</button>`).join("")}</div>
+      <button class="big-btn" id="valid">Valider</button>`;
+    document.querySelectorAll(".lab").forEach(b => b.onclick = () => {
+      if (locked) return;
+      const on = b.classList.toggle("cross"); b.setAttribute("aria-pressed", on);
+    });
+    document.getElementById("valid").onclick = validate;
+  };
+  const validate = () => {
+    if (locked) return; locked = true;
+    let ok = true;
+    document.querySelectorAll(".lab").forEach(b => {
+      const l = cur.labels[b.dataset.i], crossed = b.classList.contains("cross");
+      const right = crossed !== l.ok;
+      if (!right) ok = false;
+      b.classList.add(right ? "good" : "bad");
+    });
+    hist.push({ n: cur.n, ok, cr: cur.cr, isNew: ok && addCatch(cur.cr), faux: cur.labels.filter(l => !l.ok).map(l => l.txt) }); count();
+    wildEnd(ok, cur.cr); (ok ? harpe : buzz)();
+    document.getElementById("card").classList.add(ok ? "ok" : "ko");
+    const v = document.getElementById("valid"); v.textContent = "Suivant"; v.onclick = next;
+    locked = true;
+    if (ok) setTimeout(next, 900);
+  };
+  const next = () => { const c = document.getElementById("card"); if (!c) return; c.classList.remove("ok", "ko"); render(); };
+  document.getElementById("stop").onclick = () => endNum(hist);
+  render(); startTimer(() => endNum(hist));
+}
+function endNum(hist) {
+  clearInterval(timer); musicMode("menu");
+  const good = hist.filter(h => h.ok).length;
+  const rank = hist.length ? addScore("num", good, hist.length) : null, m = medal(good);  app.innerHTML = `
+    <div class="result">
+      <h2>Score</h2>
+      <div class="score-ring"><div>${good}<small>/ ${hist.length}</small></div></div>
+      <strong>${good} exercice${good > 1 ? "s" : ""} réussi${good > 1 ? "s" : ""} sans erreur</strong>
+      ${m ? `<div class="belt-big">${medalSVG(m)}<strong>${m.name} !</strong></div>` : `<p class="rank-none">Pas encore de médaille : il faut 6 exercices justes pour le bronze.</p>`}
+      ${rankMsg(rank)}
+      <div class="actions"><button class="big-btn" id="again">Rejouer</button><button class="big-btn alt" id="scores">Meilleurs scores</button><button class="big-btn alt" id="back">Menu</button></div>
+    </div>
+    ${caughtHTML(hist)}
+    ${hist.length ? `<section class="review"><h3>Correction</h3>${hist.map(h => `<p class="${h.ok ? "ok" : "ko"}" style="color:var(--${h.ok ? "green" : "red"})">${h.ok ? "✓" : "✗"} <strong>${h.n}</strong> · étiquettes fausses : ${h.faux.join(" ; ")}</p>`).join("")}</section>` : ""}`;
+  document.getElementById("again").onclick = numGame;
+  document.getElementById("scores").onclick = scoresPage;
+  document.getElementById("back").onclick = menu;
+}
+
+// Au lancement, on arrive toujours sur le choix du joueur.
+if (!(player && loadPlayers().list.includes(player))) player = null;
+playersPage();
+</script>
